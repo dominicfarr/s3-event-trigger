@@ -26,6 +26,22 @@ Resources:
           - '*'
 
   ## Lambda functions
+  ProcessS3TriggerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src/processS3Trigger/
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Timeout: 3
+      MemorySize: 128
+      Policies: AWSLambdaExecute
+      Events:
+        ProcessRawFileEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref S3UploadBucket
+            Events: s3:ObjectCreated:*
+
   UploadRequestFunction:
     # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Type: AWS::Serverless::Function
@@ -80,3 +96,6 @@ Outputs:
   S3UploadBucketName:
     Description: 'S3 bucket for application uploads'
     Value: !Ref 'S3UploadBucket'
+  ProcessS3TriggerFunctionName:
+    Description: 'ProcessS3TriggerFunction Name'
+    Value: !Ref ProcessS3TriggerFunction

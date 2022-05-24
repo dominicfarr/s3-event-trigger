@@ -1,0 +1,12 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "s3-upload-poc"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-q2xxmvpthhs0"
+s3_prefix = "s3-upload-poc"
+region = "eu-west-2"
+profile = "domfarr"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "BucketName=\"dnapal-upload-poc\""
+image_repositories = []

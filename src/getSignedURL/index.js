@@ -1,6 +1,8 @@
 'use strict';
 
 const AWS = require('aws-sdk');
+const uuid = require('uuid');
+
 AWS.config.update({ region: process.env.AWS_REGION });
 const s3 = new AWS.S3();
 const URL_EXPIRATION_SECONDS = 120;
@@ -11,8 +13,10 @@ exports.handler = async (event) => {
 };
 
 const getUploadURL = async function (event) {
+  const metadata = extractUserDefinedMetadata(event);
+
   const randomID = parseInt(Math.random() * 10000000);
-  const Key = `${randomID}.txt`;
+  const Key = uuid.v4() + '.dna';
 
   // Get signed URL from S3
   const s3Params = {
@@ -20,7 +24,7 @@ const getUploadURL = async function (event) {
     Key,
     Expires: URL_EXPIRATION_SECONDS,
     ContentType: 'text/plain',
-
+    Metadata: metadata,
     // This ACL makes the uploaded object publicly readable. You must also uncomment
     // the extra permission for the Lambda function in the SAM template.
 
@@ -35,3 +39,16 @@ const getUploadURL = async function (event) {
     Key,
   });
 };
+
+function extractUserDefinedMetadata(event) {
+  const metadata = { ...event['headers'] };
+  console.log('shallow copy headers', metadata);
+  for (let property in metadata) {
+    if (!property.startsWith('x-amz-meta-')) {
+      console.log(`prop ${property} will be deleted from metadata`);
+      delete metadata[property];
+      console.log(metadata);
+    }
+  }
+  return metadata;
+}
