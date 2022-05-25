@@ -56,12 +56,12 @@ Resources:
       Runtime: nodejs12.x
       Timeout: 3
       MemorySize: 128
-      Events:
-        ProcessRawFileEvent:
-          Type: S3
-          Properties:
-            Bucket: !Ref S3UploadBucket
-            Events: s3:ObjectCreated:*
+      # Events:
+      #   ProcessRawFileEvent:
+      #     Type: S3
+      #     Properties:
+      #       Bucket: !Ref S3UploadBucket
+      #       Events: s3:ObjectCreated:*
 
   UploadRequestFunction:
     # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
