@@ -34,7 +34,19 @@ Resources:
       Runtime: nodejs12.x
       Timeout: 3
       MemorySize: 128
-      Policies: AWSLambdaExecute
+      Environment:
+        Variables:
+          SES_CONFIG_SET_NAME: !Ref SESConfigSet
+      Policies:
+        - AWSLambdaExecute
+        - Statement:
+            - Effect: Allow
+              Action:
+                - 'ses:SendEmail'
+                - 'ses:SendTemplatedEmail'
+                - 'ses:SendRawEmail'
+                - 'ses:SendBulkTemplatedEmail'
+              Resource: '*'
       Events:
         ProcessRawFileEvent:
           Type: S3
@@ -87,6 +99,12 @@ Resources:
               - HEAD
             AllowedOrigins:
               - '*'
+
+  ## SES
+  SESConfigSet:
+    Type: 'AWS::SES::ConfigurationSet'
+    Properties:
+      Name: CustomConfigSet
 
 ## Take a note of the outputs for deploying the workflow templates in this sample application
 Outputs:

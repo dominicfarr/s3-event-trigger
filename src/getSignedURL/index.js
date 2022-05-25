@@ -14,8 +14,6 @@ exports.handler = async (event) => {
 
 const getUploadURL = async function (event) {
   const metadata = extractUserDefinedMetadata(event);
-
-  const randomID = parseInt(Math.random() * 10000000);
   const Key = uuid.v4() + '.dna';
 
   // Get signed URL from S3
@@ -31,7 +29,6 @@ const getUploadURL = async function (event) {
     // ACL: 'public-read'
   };
 
-  console.log('Params: ', s3Params);
   const uploadURL = await s3.getSignedUrlPromise('putObject', s3Params);
 
   return JSON.stringify({
@@ -42,13 +39,14 @@ const getUploadURL = async function (event) {
 
 function extractUserDefinedMetadata(event) {
   const metadata = { ...event['headers'] };
-  console.log('shallow copy headers', metadata);
   for (let property in metadata) {
-    if (!property.startsWith('x-amz-meta-')) {
-      console.log(`prop ${property} will be deleted from metadata`);
-      delete metadata[property];
-      console.log(metadata);
+    if (property.startsWith('x-amz-meta-')) {
+      const newPropertyKey = property.substring(
+        property.indexOf('x-amz-meta-') + 'x-amz-meta-'.length
+      );
+      metadata[newPropertyKey] = metadata[property];
     }
+    delete metadata[property];
   }
   return metadata;
 }
