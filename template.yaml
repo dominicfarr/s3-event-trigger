@@ -25,11 +25,10 @@ Resources:
         AllowOrigins:
           - '*'
 
-  ## Lambda functions
-  ProcessS3TriggerFunction:
+  SendEmailToCustomer:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src/processS3Trigger/
+      CodeUri: ./src/sendEmailToCustomer/
       Handler: index.handler
       Runtime: nodejs12.x
       Timeout: 3
@@ -47,6 +46,16 @@ Resources:
                 - 'ses:SendRawEmail'
                 - 'ses:SendBulkTemplatedEmail'
               Resource: '*'
+
+  ## Lambda functions
+  ProcessS3TriggerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src/processS3Trigger/
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Timeout: 3
+      MemorySize: 128
       Events:
         ProcessRawFileEvent:
           Type: S3
