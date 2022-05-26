@@ -25,10 +25,11 @@ Resources:
         AllowOrigins:
           - '*'
 
+  ## Lambda functions
   SendEmailToCustomer:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src/sendEmailToCustomer/
+      CodeUri: ./lambdas/sendEmailToCustomer/
       Handler: index.handler
       Runtime: nodejs12.x
       Timeout: 3
@@ -47,27 +48,20 @@ Resources:
                 - 'ses:SendBulkTemplatedEmail'
               Resource: '*'
 
-  ## Lambda functions
   ProcessS3TriggerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src/processS3Trigger/
+      CodeUri: ./lambdas/processS3Trigger/
       Handler: index.handler
       Runtime: nodejs12.x
       Timeout: 3
       MemorySize: 128
-      # Events:
-      #   ProcessRawFileEvent:
-      #     Type: S3
-      #     Properties:
-      #       Bucket: !Ref S3UploadBucket
-      #       Events: s3:ObjectCreated:*
 
   UploadRequestFunction:
     # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src/getSignedURL/
+      CodeUri: ./lambdas/getSignedURL/
       Handler: index.handler
       Runtime: nodejs12.x
       Timeout: 3
@@ -111,6 +105,38 @@ Resources:
               - HEAD
             AllowedOrigins:
               - '*'
+
+  ## Eventbridge rule
+  EventBusRuleTriggeredOnS3Upload:
+    Type: AWS::Events::Rule
+    Properties:
+      State: 'ENABLED'
+      Description: When new file is created in S3 bucket, this rule triggers the processing lambda
+      EventPattern:
+        source:
+          - aws.s3
+        detail-type:
+          - 'Object Created'
+        details:
+          bucket:
+            name: [!Ref BucketName]
+      Targets:
+        - Arn:
+            Fn::GetAtt:
+              - 'ProcessS3TriggerFunction'
+              - 'Arn'
+          Id: 'ProcessS3TriggerFunction'
+
+  PermissionForEventsToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref 'ProcessS3TriggerFunction'
+      Action: 'lambda:InvokeFunction'
+      Principal: 'events.amazonaws.com'
+      SourceArn:
+        Fn::GetAtt:
+          - 'EventBusRuleTriggeredOnS3Upload'
+          - 'Arn'
 
   ## SES
   SESConfigSet:
